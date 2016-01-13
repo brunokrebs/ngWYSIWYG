@@ -472,8 +472,8 @@ angular.module('ngWYSIWYG').directive('wysiwygEdit', ['$compile', '$timeout', '$
 		var buttons = [];
 		angular.forEach(buttonGroup.items, function(button, index) {
 			var buttonFound = scope.panelButtons[button];
-			if (!button) {
-				button = scope.config.buttons[button];
+			if (!buttonFound) {
+				buttonFound = scope.config.buttons[button];
 			}
 		    this.push( getButtonHtml(buttonFound) );
 		}, buttons);
