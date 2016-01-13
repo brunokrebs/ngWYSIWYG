@@ -431,7 +431,8 @@ angular.module('ngWYSIWYG').directive('wysiwygEdit', ['$compile', '$timeout', '$
 					html += 'ng-class="{\'pressed\': cursorStyle.' + button.pressed + '}" ';
 				}
 				if (button.command) {
-					html += 'ng-click="execCommand(\'' + button.command + '\')" ';
+					html += 'ng-click="execCommand(\'' + button.command + '\', false, '
+						+ (button.commandParameter || '') + ')" ';
 				} else if (button.specialCommand) {
 					html += 'ng-click="' + button.specialCommand + '" ';
 				}
@@ -470,7 +471,11 @@ angular.module('ngWYSIWYG').directive('wysiwygEdit', ['$compile', '$timeout', '$
 	    angular.forEach(scope.toolbar, function(buttonGroup, index) {
 		var buttons = [];
 		angular.forEach(buttonGroup.items, function(button, index) {
-		    this.push( getButtonHtml(scope.panelButtons[button]) );
+			var button = scope.panelButtons[button];
+			if (!button) {
+				button = scope.config.buttons[button];
+			}
+		    this.push( getButtonHtml(button) );
 		}, buttons);
 		this.push(
 		    "<div class=\"tinyeditor-buttons-group\">" +
