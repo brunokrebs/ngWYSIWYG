@@ -435,7 +435,7 @@ angular.module('ngWYSIWYG').directive('wysiwygEdit', ['$compile', '$timeout', '$
 					if (button.commandParameter) {
 						html += ', \'' + button.commandParameter + '\'';
 					}
-					html += ') ';
+					html += ')" ';
 				} else if (button.specialCommand) {
 					html += 'ng-click="' + button.specialCommand + '" ';
 				}
