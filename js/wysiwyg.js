@@ -431,8 +431,11 @@ angular.module('ngWYSIWYG').directive('wysiwygEdit', ['$compile', '$timeout', '$
 					html += 'ng-class="{\'pressed\': cursorStyle.' + button.pressed + '}" ';
 				}
 				if (button.command) {
-					html += 'ng-click="execCommand(\'' + button.command + '\', false, \''
-						+ button.commandParameter + '\')" ';
+					html += 'ng-click="execCommand(\'' + button.command + '\'';
+					if (button.commandParameter) {
+						html += ', \'' + button.commandParameter + '\'';
+					}
+					html += ') ';
 				} else if (button.specialCommand) {
 					html += 'ng-click="' + button.specialCommand + '" ';
 				}
