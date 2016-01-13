@@ -471,11 +471,11 @@ angular.module('ngWYSIWYG').directive('wysiwygEdit', ['$compile', '$timeout', '$
 	    angular.forEach(scope.toolbar, function(buttonGroup, index) {
 		var buttons = [];
 		angular.forEach(buttonGroup.items, function(button, index) {
-			var button = scope.panelButtons[button];
+			var buttonFound = scope.panelButtons[button];
 			if (!button) {
 				button = scope.config.buttons[button];
 			}
-		    this.push( getButtonHtml(button) );
+		    this.push( getButtonHtml(buttonFound) );
 		}, buttons);
 		this.push(
 		    "<div class=\"tinyeditor-buttons-group\">" +
