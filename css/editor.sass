@@ -2,6 +2,9 @@ wysiwyg-edit .tinyeditor
 	border: 1px solid #bbb
 	padding: 0 1px 1px
 	font: 12px Verdana,Arial
+	button
+		border: none
+		background-color: transparent
 	iframe
 		border: none
 		background: white
@@ -28,6 +31,9 @@ wysiwyg-edit .tinyeditor
 			background-color: #ffffff
 			height: 30px
 			line-height: 30px
+			&.disabled
+				background-color: transparent
+				opacity: 0.5
 		/*margin-top:5px
 		.tinyeditor-buttons-group
 			.tinyeditor-font
@@ -53,12 +59,16 @@ wysiwyg-edit .tinyeditor
 					background-position-x: 34px
 				&.pressed
 					background-color: #D0CFCF
+				&.disabled
+					background-color: transparent
+					opacity: 0.5
+					cursor: default
 			.tinyeditor-control-fa
 				background-image: none
 				position: relative
 				i
 					font-size: 16px
-					margin: 8px 5px 0 10px
+					margin: 2px 5px 0 5px
 					color: #555
 				div.hr
 					border: 1px solid #555

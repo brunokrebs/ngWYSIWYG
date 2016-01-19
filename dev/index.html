@@ -13,6 +13,7 @@
 	<div class="row">
 		<div class="col-xs-12">
 			<h1>ngWYSIWYG - Angular real rich text editor.</h1>
+			<input type="checkbox" ng-model="editorConfig.disabled" />
 			<wysiwyg-edit content="content" config="editorConfig"></wysiwyg-edit>
 		</div>
 	</div>
@@ -29,7 +30,8 @@
 				$scope.content = '<p><strong>Hello World!</strong></p>' +
 						'<img src="images/logo.png">';
 				$scope.editorConfig = {
-					fontAwesome: true
+					fontAwesome: true,
+					disabled: true
 				};
 				$scope.api = {
 					scope: $scope
