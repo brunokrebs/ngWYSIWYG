@@ -39,6 +39,41 @@
 		return container;
 	};
 
+	function pasteHtmlAtCaret(doc, html) {
+		var sel, range;
+		if (doc.defaultView.getSelection) {
+			sel = doc.defaultView.getSelection();
+			if (sel.getRangeAt && sel.rangeCount) {
+				range = sel.getRangeAt(0);
+				range.deleteContents();
+
+				// Range.createContextualFragment() would be useful here but is
+				// only relatively recently standardized and is not supported in
+				// some browsers (IE9, for one)
+				var el = doc.createElement("div");
+				el.innerHTML = html;
+				var frag = doc.createDocumentFragment(), node, lastNode;
+				while ((node = el.firstChild)) {
+					lastNode = frag.appendChild(node);
+				}
+				var firstNode = frag.firstChild;
+				range.insertNode(frag);
+
+				// Preserve the selection
+				if (lastNode) {
+					range = range.cloneRange();
+					range.setStartAfter(lastNode);
+					range.collapse(true);
+					sel.removeAllRanges();
+					sel.addRange(range);
+				}
+			}
+		} else if (doc.selection && doc.selection.type != "Control") {
+			// IE < 9
+			doc.selection.createRange().pasteHTML(html);
+		}
+	}
+
 	angular.module('ngWYSIWYG', ['ngSanitize']);
 	var editorTemplate = "<div class=\"tinyeditor\">" +
 		"<div class=\"tinyeditor-header\" ng-hide=\"editMode\">" +
@@ -47,7 +82,7 @@
 		"</div>" +
 		"<div class=\"sizer\" ce-resize>" +
 		"<textarea data-placeholder-attr=\"\" style=\"-webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; resize: none; width: 100%; height: 100%;\" ng-show=\"editMode\" ng-model=\"content\"></textarea>" +
-		"<iframe style=\"-webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; width: 100%; height: 100%;\" ng-hide=\"editMode\" wframe=\"{sanitize: config.sanitize}\" content-style=\"{contentStyle}\" ng-model=\"content\"></iframe>" +
+		"<iframe style=\"-webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; width: 100%; height: 100%;\" ng-hide=\"editMode\" wframe=\"config\" content-style=\"{contentStyle}\" ng-model=\"content\"></iframe>" +
 		"</div>" +
 		"<div class=\"tinyeditor-footer\">" +
 		"<div ng-switch=\"editMode\" ng-click=\"editMode = !editMode\" class=\"toggle\"><span ng-switch-when=\"true\">wysiwyg</span><span ng-switch-default>source</span></div>" +
@@ -81,6 +116,21 @@
 				var $head = angular.element($element[0].contentDocument.head);
 				$body.attr('contenteditable', 'true');
 
+				scope.config = scope.config || {};
+
+				if (scope.config.plainPaste) {
+					$document.addEventListener("paste", function(e) {
+						e.preventDefault();
+						var text;
+						if (e.clipboardData) {
+							text = e.clipboardData.getData("text/plain");
+						} else {
+							text = $document.defaultView.clipboardData.getData("Text");
+						}
+						pasteHtmlAtCaret($document, text);
+					});
+				}
+
 				// fixing issue that makes caret disappear on chrome (https://github.com/psergus/ngWYSIWYG/issues/22)
 				$document.addEventListener('click', function(event) {
 					if (event.target.tagName === 'HTML') {
@@ -93,19 +143,10 @@
 					$head.append('<link rel="stylesheet" type="text/css" href="' + attrs.contentStyle + '">');
 				}
 
-				/*
-				 $element.bind('load', function (event) {
-				 console.log('iframe loaded');
-				 $document.designMode = 'On';
-				 });
-				 */
-
 				//model --> view
 				ctrl.$render = function() {
-					//$body.html(ctrl.$viewValue || ''); //not friendly with jQuery. snap you jQuery
-					console.log(scope.config);
 					//sanitize the input only if defined through config
-					$body[0].innerHTML = ctrl.$viewValue? ( (scope.config && scope.config.sanitize)? $sanitize(ctrl.$viewValue) : ctrl.$viewValue) : '';
+					$body[0].innerHTML = ctrl.$viewValue? (scope.config.sanitize? $sanitize(ctrl.$viewValue) : ctrl.$viewValue) : '';
 				};
 
 				scope.sync = function() {
@@ -389,40 +430,9 @@
 					iframeWindow = iframeDocument.defaultView;
 				}
 
-				function pasteHtmlAtCaret(html) {
+				function pasteHtml(html) {
 					loadVars();
-					var sel, range;
-					if (iframeWindow.getSelection) {
-						sel = iframeWindow.getSelection();
-						if (sel.getRangeAt && sel.rangeCount) {
-							range = sel.getRangeAt(0);
-							range.deleteContents();
-
-							// Range.createContextualFragment() would be useful here but is
-							// only relatively recently standardized and is not supported in
-							// some browsers (IE9, for one)
-							var el = iframeDocument.createElement("div");
-							el.innerHTML = html;
-							var frag = iframeDocument.createDocumentFragment(), node, lastNode;
-							while ((node = el.firstChild)) {
-								lastNode = frag.appendChild(node);
-							}
-							var firstNode = frag.firstChild;
-							range.insertNode(frag);
-
-							// Preserve the selection
-							if (lastNode) {
-								range = range.cloneRange();
-								range.setStartAfter(lastNode);
-								range.collapse(true);
-								sel.removeAllRanges();
-								sel.addRange(range);
-							}
-						}
-					} else if (iframeDocument.selection && iframeDocument.selection.type != "Control") {
-						// IE < 9
-						iframeDocument.selection.createRange().pasteHTML(html);
-					}
+					pasteHtmlAtCaret(iframeDocument, html);
 				}
 
 				scope.panelButtons = {
@@ -632,7 +642,7 @@
 
 				scope.showSpecChars = false;
 				scope.insertSpecChar = function(symbol) {
-					pasteHtmlAtCaret(symbol);
+					pasteHtml(symbol);
 				};
 				scope.insertLink = function() {
 					loadVars();
@@ -675,7 +685,7 @@
 					}
 					//resolve the promise if any
 					$q.when(val).then(function(data) {
-						pasteHtmlAtCaret(data);
+						pasteHtml(data);
 					});
 				};
 				$element.ready(function() {
